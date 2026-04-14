@@ -71,6 +71,7 @@ app.post('/api/upload-archive', satpamJWT, async (req, res) => {
     } catch (err) { res.status(500).json({ message: "Gagal menyimpan archive." }); }
 });
 
+module.exports = app;
 module.exports = app;// ==========================================
 const satpamJWT = (req, res, next) => {
     const headerAuth = req.headers['authorization'];
