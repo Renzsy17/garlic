@@ -71,31 +71,7 @@ app.post('/api/upload-archive', satpamJWT, async (req, res) => {
     } catch (err) { res.status(500).json({ message: "Gagal menyimpan archive." }); }
 });
 
-module.exports = app;
-module.exports = app;// ==========================================
-const satpamJWT = (req, res, next) => {
-    const headerAuth = req.headers['authorization'];
-    const token = headerAuth && headerAuth.split(' ')[1]; // Format: Bearer <token>
-
-    if (!token) return res.status(403).json({ message: "Akses Ditolak! Tiket tidak ada." });
-
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ message: "Sesi habis atau tiket palsu. Silakan login lagi." });
-        req.user = user;
-        next(); // Tiket valid, silakan lewat!
-    });
-};
-
-
-// ==========================================
-// ROUTE 2: UPLOAD EVENT (DILINDUNGI SATPAM)
-// ==========================================
-app.post('/upload-event', satpamJWT, async (req, res) => {
-    try {
-        const eventBaru = new Event({
-            judul: req.body.judul,
-            tanggal: req.body.tanggal,
-            gambar: req.body.gambar,
+module.exports = app;            gambar: req.body.gambar,
             link_dokumen: req.body.link_dokumen,
             deskripsi: req.body.deskripsi
         });
