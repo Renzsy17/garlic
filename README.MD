@@ -12,7 +12,7 @@
 3. Gunakan github jika ingin mengubah file/foto ke link
 
 # Thanks To
-Aorta VX (UPLOAD LOGIC)
+Aorta VX (UPLOAD LOGIC) <br
 Lexxy VX (FIXING BUG)
 
 # DO NOT DELETE ANY CREDIT
