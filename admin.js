@@ -1,6 +1,5 @@
 // URL Backend (Nanti diganti sama URL Vercel/Node.js kita)
-const API_URL = "https://api-garnadyaksa.vercel.app";
-
+const API_URL = "https://garlic-gules.vercel.app/api";
 // ==========================================
 // SISTEM ROUTING & MENU (SPA LOGIC)
 // ==========================================
