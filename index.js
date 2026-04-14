@@ -3,74 +3,75 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 
-// Mengambil variabel rahasia dari environment Vercel
 const MONGO_URL = process.env.MONGO_URL;
 const JWT_SECRET = process.env.JWT_SECRET;
 const TURNSTILE_SECRET = process.env.TURNSTILE_SECRET;
 const ADMIN_USER = process.env.ADMIN_USER || 'admin';
-const ADMIN_PASS = process.env.ADMIN_PASS || 'rahasia123'; // Nanti password diset di Vercel aja biar aman
+const ADMIN_PASS = process.env.ADMIN_PASS || 'rahasia123';
 
 const app = express();
-
-// Middleware
-app.use(cors({ origin: '*' })); // Mengizinkan GitHub Pages menembak API ini
+app.use(cors({ origin: '*' }));
 app.use(express.json());
 
-// ==========================================
-// KONEKSI KE MONGODB
-// ==========================================
 mongoose.connect(MONGO_URL)
     .then(() => console.log('✅ Terhubung ke MongoDB Atlas'))
     .catch(err => console.error('❌ Gagal konek MongoDB:', err));
 
-// Bikin Cetakan Data (Schema) untuk Event
 const eventSchema = new mongoose.Schema({
-    judul: String,
-    tanggal: String,
-    gambar: String,
-    link_dokumen: String,
-    deskripsi: String,
-    dibuat_pada: { type: Date, default: Date.now }
+    judul: String, tanggal: String, gambar: String, link_dokumen: String, deskripsi: String, dibuat_pada: { type: Date, default: Date.now }
 });
-const Event = mongoose.model('Event', eventSchema);
+const Event = mongoose.models.Event || mongoose.model('Event', eventSchema);
 
+const archiveSchema = new mongoose.Schema({
+    judul: String, gambar: String, dibuat_pada: { type: Date, default: Date.now }
+});
+const Archive = mongoose.models.Archive || mongoose.model('Archive', archiveSchema);
 
-// ==========================================
-// ROUTE 1: LOGIN & VERIFIKASI CLOUDFLARE
-// ==========================================
-app.post('/login', async (req, res) => {
+const satpamJWT = (req, res, next) => {
+    const headerAuth = req.headers['authorization'];
+    const token = headerAuth && headerAuth.split(' ')[1];
+    if (!token) return res.status(403).json({ message: "Akses Ditolak! Tiket tidak ada." });
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ message: "Sesi habis atau tiket palsu." });
+        req.user = user;
+        next();
+    });
+};
+
+app.post('/api/login', async (req, res) => {
     const { username, password, captcha } = req.body;
-
-    // 1. Cek Captcha ke Cloudflare
     try {
         const cfResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: `secret=${TURNSTILE_SECRET}&response=${captcha}`
         });
         const cfData = await cfResponse.json();
+        if (!cfData.success) return res.status(400).json({ message: "Robot terdeteksi!" });
+    } catch (err) { return res.status(500).json({ message: "Gagal memverifikasi keamanan." }); }
 
-        if (!cfData.success) {
-            return res.status(400).json({ message: "Robot terdeteksi! Captcha tidak valid." });
-        }
-    } catch (err) {
-        return res.status(500).json({ message: "Gagal memverifikasi keamanan." });
-    }
-
-    // 2. Cek Username & Password
     if (username === ADMIN_USER && password === ADMIN_PASS) {
-        // Kalau benar, buatkan Tiket (Token JWT) yang berlaku 1 jam
         const token = jwt.sign({ role: 'admin' }, JWT_SECRET, { expiresIn: '1h' });
         res.json({ message: "Login Berhasil", token: token });
-    } else {
-        res.status(401).json({ message: "Username atau Password salah!" });
-    }
+    } else { res.status(401).json({ message: "Username atau Password salah!" }); }
 });
 
+app.post('/api/upload-event', satpamJWT, async (req, res) => {
+    try {
+        const eventBaru = new Event(req.body);
+        await eventBaru.save();
+        res.status(201).json({ message: "Event berhasil disimpan!" });
+    } catch (err) { res.status(500).json({ message: "Gagal menyimpan event." }); }
+});
 
-// ==========================================
-// MIDDLEWARE: SATPAM PENGECEK TIKET JWT
-// ==========================================
+app.post('/api/upload-archive', satpamJWT, async (req, res) => {
+    try {
+        const archiveBaru = new Archive(req.body);
+        await archiveBaru.save();
+        res.status(201).json({ message: "Archive berhasil disimpan!" });
+    } catch (err) { res.status(500).json({ message: "Gagal menyimpan archive." }); }
+});
+
+module.exports = app;// ==========================================
 const satpamJWT = (req, res, next) => {
     const headerAuth = req.headers['authorization'];
     const token = headerAuth && headerAuth.split(' ')[1]; // Format: Bearer <token>
