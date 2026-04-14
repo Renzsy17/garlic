@@ -1,5 +1,5 @@
 # This script was created by Renzelt
-# SC WEB. OSIS V 1.2.0 (PROTECT MODE)
+# SC WEB. OSIS V 1.3.0
 
 
 <p align="left">
