@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Garnadyaksa V2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin.css">
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body id="body-main" class="login-mode">
+
+    <div id="login-section">
+        <div class="login-box">
+            <div class="login-logo">Admin<span>Panel</span></div>
+            <div class="login-card">
+                <p>Sistem Keamanan MongoDB Aktif</p>
+                <div id="login-alert" class="alert hidden"></div>
+                <form id="form-login">
+                    <div class="form-group"><input type="text" id="username" placeholder="Username" required></div>
+                    <div class="form-group"><input type="password" id="password" placeholder="Password" required></div>
+                    <div class="cf-turnstile" data-sitekey="TARUH_KUNCI_SITUS_DI_SINI"></div>
+                    <button type="submit" id="btn-login">Log Masuk</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard-section" class="hidden">
+        <header class="admin-header">
+            <div class="admin-logo">Admin<span>Panel</span></div>
+            <div class="hamburger" id="hamburger-icon">
+                <span></span><span></span><span></span>
+            </div>
+            
+            <nav class="admin-nav" id="sidebar-menu">
+                <a onclick="switchMenu('upload')" id="nav-upload" class="active">📝 Upload Event</a>
+                <a onclick="switchMenu('archive')" id="nav-archive">📸 Upload Archive</a>
+                <a onclick="switchMenu('traffic')" id="nav-traffic">📊 Traffic Web</a>
+                <a href="index.html" target="_blank">🌐 Lihat Web OSIS</a>
+                <a onclick="logout()" class="nav-keluar">🚪 Keluar</a>
+            </nav>
+        </header>
+        <div class="nav-overlay" id="overlay"></div>
+
+        <div id="view-upload" class="admin-container">
+            <h2>Upload Event Baru</h2>
+            <div id="upload-alert" class="alert hidden"></div>
+            <form id="form-upload-event">
+                <div class="form-group"><label>Judul Event</label><input type="text" id="event-judul" required></div>
+                <div class="form-group"><label>Tanggal Pelaksanaan</label><input type="text" id="event-tanggal" required placeholder="Contoh: 15 Oktober 2026"></div>
+                <div class="form-group"><label>Link Gambar Poster</label><input type="url" id="event-gambar" required></div>
+                <div class="form-group"><label>Link Dokumentasi</label><input type="url" id="event-dokumen" required></div>
+                <div class="form-group"><label>Deskripsi Lengkap</label><textarea id="event-deskripsi" required></textarea></div>
+                <button type="submit">Publikasikan Event</button>
+            </form>
+        </div>
+
+        <div id="view-archive" class="admin-container hidden">
+            <h2>Upload Foto Archive</h2>
+            <div id="archive-alert" class="alert hidden"></div>
+            <form id="form-upload-archive">
+                <div class="form-group"><label>Judul Kegiatan</label><input type="text" id="archive-judul" required placeholder="Contoh: LDKS 2025"></div>
+                <div class="form-group"><label>Link Foto / Gambar</label><input type="url" id="archive-gambar" required></div>
+                <button type="submit">Tambahkan ke Archive</button>
+            </form>
+        </div>
+
+        <div id="view-traffic" class="admin-container hidden">
+            <h2>Statistik Traffic</h2>
+            <div class="stats-grid">
+                <div class="stat-box"><h3 id="stat-hits">0</h3><p>Total Klik</p></div>
+                <div class="stat-box"><h3 id="stat-ip">0</h3><p>Jejak IP</p></div>
+            </div>
+            <div style="margin-bottom: 15px; text-align: right;">
+                <button onclick="cleanupTraffic()" style="width:auto; background: #fb8c00; font-size:0.85rem;">🧹 Jalankan The Janitor</button>
+            </div>
+            <div class="scroll-box">
+                <table class="table-ip">
+                    <thead><tr><th>Waktu Akses (WIB)</th><th>Alamat IP</th><th>📱 Perangkat Siswa</th></tr></thead>
+                    <tbody id="traffic-table-body">
+                        <tr><td colspan="3" style="text-align:center;">Mengambil data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
