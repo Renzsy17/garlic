@@ -7,20 +7,20 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="../homepage.css">
-    <link rel="stylesheet" href="../event.css">
+    <link rel="stylesheet" href="homepage.css">
+    <link rel="stylesheet" href="event.css">
 </head>
 <body>
 
     <header>
-        <a href="../index.html" class="logo">
+        <a href="index.html" class="logo">
             <img src="https://raw.githubusercontent.com/Renzsy17/Hwhehehe/refs/heads/main/22493053-5ec3-48b7-905f-f6b8067cf35c_removalai_preview.png" alt="Logo Garnadyaksa">
             <div class="logo-text">GARNA<span>DYAKSA</span></div>
         </a>
         <nav>
-            <a href="../index.html">Home</a>
-            <a href="../index.html#current-events">Events</a>
-            <a href="../index.html#archive">Archive</a>
+            <a href="index.html">Home</a>
+            <a href="index.html#current-events">Events</a>
+            <a href="index.html#archive">Archive</a>
         </nav>
     </header>
 
@@ -51,16 +51,16 @@
         if (!idArtikel) {
             wadah.innerHTML = '<h2 style="text-align: center; padding: 100px 20px; color: red;">Artikel tidak ditemukan.</h2>';
         } else {
-            etch('https://garlic-gules.vercel.app/api/events')
+            // FIX: Tambahin f biar jadi fetch wkwkwk
+            fetch('https://garlic-gules.vercel.app/api/events')
                 .then(response => response.json())
                 .then(data => {
-                    const artikel = data.find(item => item.id == idArtikel);
+                    // FIX: Pake _id bawaan MongoDB
+                    const artikel = data.find(item => item._id == idArtikel);
 
                     if (artikel) {
-                        // Ubah Judul Tab Browser otomatis
                         document.title = artikel.judul + " | Garnadyaksa";
 
-                        // Cetak HTML pakai desain ASLI kamu
                         wadah.innerHTML = `
                             <article class="article-wrapper">
                                 <img src="${artikel.gambar}" alt="${artikel.judul}" class="article-hero-img">
@@ -86,7 +86,7 @@
                                         <p>${artikel.deskripsi}</p>
                                     </div>
 
-<div class="article-cta">
+                                    <div class="article-cta">
                                         <h3 style="margin-bottom: 1rem;">Link Dokumentasi</h3>
                                         <p style="margin-bottom: 1.5rem; color: #555;">Klik tombol di bawah ini untuk melihat foto-foto keseruan event ini!</p>
                                         
