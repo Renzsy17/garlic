@@ -302,31 +302,159 @@ document.getElementById('g-search').addEventListener('input', function(e) {
  \\____|\\__,_|_|  |_| |_|\\__,_|\\__,_|\\__, |\\__,_|_|\\_\\___/\\__,_|
                                     |___/                      
 `;
+<script>
+    // URL API KITA (Vercel)
+    const API_URL = "https://garlic-gules.vercel.app/api";
 
+    // --- VAKSIN ANTI XSS FRONTEND ---
+    function antiXSS(teks) {
+        if (!teks) return "";
+        return teks.toString().replace(/[&<>"']/g, function(karakter) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[karakter];
+        });
+    }
+
+    // 1. PELAYAN NGAMBIL DATA EVENT DARI VERCEL
+    fetch(`${API_URL}/events`)
+        .then(response => {
+            if (!response.ok) throw new Error('Gagal memuat data');
+            return response.json();
+        })
+        .then(data => {
+            const wadahArtikel = document.getElementById('tempat-artikel');
+            
+            if(data.length === 0) {
+                wadahArtikel.innerHTML = '<p style="text-align:center; width:100%; grid-column: 1 / -1; color:#888;">Belum ada event atau berita yang dipublikasikan saat ini.</p>';
+                return;
+            }
+            
+            let susunanHTML = '';
+            
+            // Nggak usah di-reverse() lagi karena dari Vercel udah diurutin dari yang terbaru
+            data.forEach(artikel => {
+               
+                let potongDeskripsi = artikel.deskripsi.length > 120 
+                    ? artikel.deskripsi.substring(0, 120) + '...' 
+                    : artikel.deskripsi;
+
+                let judulAman = antiXSS(artikel.judul);
+                let deskripsiAman = antiXSS(potongDeskripsi);
+                let tanggalAman = antiXSS(artikel.tanggal);
+                let gambarAman = encodeURI(artikel.gambar); 
+
+                // CATATAN: Pake _id karena ini ID bawaan MongoDB
+                susunanHTML += `
+                    <article class="event-card">
+                        <img src="${gambarAman}" alt="${judulAman}" class="event-image">
+                        <div class="event-content">
+                            <span class="event-date">${tanggalAman}</span>
+                            <h3 class="event-title">${judulAman}</h3>
+                            <p>${deskripsiAman}</p>
+                            <br>
+                            <a href="baca.html?id=${artikel._id}" style="color: var(--primary-red, #d32f2f); font-weight: 600; text-decoration: none;"> Learn More &rarr;</a>
+                        </div>
+                    </article>
+                `;
+            });
+            
+            wadahArtikel.innerHTML = susunanHTML;
+        })
+        .catch(error => {
+            document.getElementById('tempat-artikel').innerHTML = '<p style="text-align:center; grid-column: 1 / -1; color:red;">Gagal terhubung ke database MongoDB.</p>';
+            console.error('Error:', error);
+        });
+
+    // 2. PELAYAN NGAMBIL DATA ARCHIVE DARI VERCEL
+    fetch(`${API_URL}/archives`)
+        .then(response => {
+            if (!response.ok) throw new Error('Gagal memuat data archive');
+            return response.json();
+        })
+        .then(data => {
+            const wadahArchive = document.getElementById('tempat-archive');
+            
+            if(data.length === 0) {
+                wadahArchive.innerHTML = '<p style="text-align:center; width:100%; color:#888;">Belum ada foto di Archive.</p>';
+                return;
+            }
+            
+            let htmlArchive = '';
+            
+            data.forEach(item => {
+                let judulArchiveAman = antiXSS(item.judul); 
+                let gambarArchiveAman = encodeURI(item.gambar);
+
+                htmlArchive += `
+                    <div class="archive-item" style="position: relative; height: 250px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                        <img src="${gambarArchiveAman}" alt="${judulArchiveAman}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                        
+                        <div class="archive-overlay" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); display: flex; align-items: flex-end; padding: 20px; box-sizing: border-box;">
+                            <h3 style="color: white; margin: 0; font-family: 'Montserrat', sans-serif; font-size: 1.1rem;">${judulArchiveAman}</h3>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            wadahArchive.innerHTML = htmlArchive;
+        })
+        .catch(error => console.error('Error Archive:', error));
+
+    // 3. FITUR PENCARIAN EVENT (Tetap sama)
+    document.getElementById('g-search').addEventListener('input', function(e) {
+        const keyword = e.target.value.toLowerCase();
+        const eventCards = document.querySelectorAll('.event-card, .archive-item');
+        let hasResult = false; 
+
+        eventCards.forEach(card => {
+            const cardText = card.textContent.toLowerCase();
+            if (cardText.includes(keyword)) {
+                card.style.display = ''; 
+                hasResult = true;
+            } else {
+                card.style.display = 'none'; 
+            }
+        });
+
+        const notFoundMsg = document.getElementById('search-not-found');
+        if (!hasResult && keyword !== '') {
+            notFoundMsg.style.display = 'block';
+        } else {
+            notFoundMsg.style.display = 'none';
+        }
+    });
+</script>
+
+<script>
+// ==========================================
+// ANTI-ERUDA & ANTI-INSPECT SHIELD
+// ==========================================
+(function() {
+    "use strict";
+    const signatureArt = `
+  ____                             _             _             
+ / ___| __ _ _ __ _ __   __ _  __| |_   _  __ _| | _____  __ _ 
+| |  _ / _' | '__| '_ \\ / _' |/ _' | | | |/ _' | |/ / __|/ _' |
+| |_| | (_| | |  | | | | (_| | (_| | |_| | (_| |   <\\__ \\ (_| |
+ \\____|\\__,_|_|  |_| |_|\\__,_|\\__,_|\\__, |\\__,_|_|\\_\\___/\\__,_|
+                                    |___/                      
+`;
     const subText = "   >> OSIS SMAN 1 BAWANG - DEVELOPED BY AMRIN SYAMZEN <<   ";
-
-    // Styling Console dengan CSS (Merah Putih Gagah)
     const styleArt = "color: #ff0000; font-weight: bold; text-shadow: 2px 2px 0px #000; font-family: monospace;";
     const styleSub = "background: #ff0000; color: #ffffff; padding: 5px; font-weight: bold; border-radius: 3px; font-family: sans-serif;";
 
-    // Print ke Console
     console.log("%c" + signatureArt, styleArt);
     console.log("%c" + subText, styleSub);
     console.log("%c" + "System Status: ACTIVE | Shield: ENABLED", "color: #4CAF50; font-style: italic; font-weight: bold;");
 
-
-    // ==========================================
-    // BAGIAN 2: ANTI-ERUDA & ANTI-INSPECT SHIELD
-    // Ranjau buat para pengintip kodingan
-    // ==========================================
-
-    // A. Deteksi Eruda (Aplikasi Inspect HP)
     const detectEruda = setInterval(() => {
-        // Cek apakah variabel 'eruda' aktif atau ada elemen dengan ID 'eruda'
         if (window.eruda || document.getElementById('eruda')) {
             clearInterval(detectEruda);
-            
-            // Hukuman: Ganti seluruh isi web jadi Layar Merah Kematian
             document.body.innerHTML = `
                 <div style="background: #000; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; color: red; font-family: monospace; text-align: center; position: fixed; top: 0; left: 0; width: 100%; z-index: 999999;">
                     <h1 style="font-size: 3rem; margin: 0; text-shadow: 0 0 10px red;">⚠️ SECURITY ALERT ⚠️</h1>
@@ -335,34 +463,23 @@ document.getElementById('g-search').addEventListener('input', function(e) {
                     <p style="margin-top: 50px; color: #555;">Garnadyaksa Secure System v2.0</p>
                 </div>
             `;
-            // Bersihkan console biar signature-nya ikut hilang (biar mereka gak dapet info apa-apa)
             console.clear(); 
         }
-    }, 1000); // Cek setiap 1 detik
+    }, 1000);
 
-    // B. The Debugger Trap (Jebakan DevTools PC)
     const debuggerTrap = function() {
         const start = new Date();
-        debugger; // Perintah sakti buat nge-freeze browser kalau DevTools kebuka
+        debugger; 
         const end = new Date();
-        // Kalau waktu eksekusi debugger terlalu lama (>100ms), berarti DevTools lagi aktif
         if (end - start > 100) {
             document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:20vh; font-family:sans-serif;'>INSPECTION BLOCKED BY SYSTEM.</h1>";
         }
     };
-    // Jalankan jebakan debugger secara terus-menerus
     setInterval(debuggerTrap, 100);
 
-    // C. Matikan Klik Kanan (Anti Copas/Inspect standar)
     document.addEventListener('contextmenu', event => event.preventDefault());
-
-    // D. Matikan Shortcut Keyboard Bahaya (F12, Ctrl+Shift+I, Ctrl+U)
     document.onkeydown = function(e) {
-        if (
-            e.keyCode == 123 || // F12
-            (e.ctrlKey && e.shiftKey && e.keyCode == 73) || // Ctrl+Shift+I
-            (e.ctrlKey && e.keyCode == 85) // Ctrl+U (View Source)
-        ) {
+        if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73) || (e.ctrlKey && e.keyCode == 85)) {
             return false;
         }
     };
