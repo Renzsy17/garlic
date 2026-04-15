@@ -98,7 +98,26 @@ app.post('/api/upload-archive', satpamJWT, async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server API Garnadyaksa jalan di Port ${PORT}`));
+// ==========================================
+// FITUR PELAYAN (GET) BUAT TAMPIL DI WEB DEPAN
+// ==========================================
+app.get('/api/events', async (req, res) => {
+    try {
+        const events = await Event.find().sort({ dibuat_pada: -1 });
+        res.json(events);
+    } catch (err) { 
+        res.status(500).json({ message: "Gagal mengambil data event." }); 
+    }
+});
 
+app.get('/api/archives', async (req, res) => {
+    try {
+        const archives = await Archive.find().sort({ dibuat_pada: -1 });
+        res.json(archives);
+    } catch (err) { 
+        res.status(500).json({ message: "Gagal mengambil data archive." }); 
+    }
+});
+
+// EXPORT BUAT VERCEL (Pengganti app.listen)
 module.exports = app;
