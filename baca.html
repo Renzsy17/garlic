@@ -51,7 +51,7 @@
         if (!idArtikel) {
             wadah.innerHTML = '<h2 style="text-align: center; padding: 100px 20px; color: red;">Artikel tidak ditemukan.</h2>';
         } else {
-            fetch('artikel.json')
+            etch('https://garlic-gules.vercel.app/api/events')
                 .then(response => response.json())
                 .then(data => {
                     const artikel = data.find(item => item.id == idArtikel);
