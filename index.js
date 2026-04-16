@@ -118,6 +118,6 @@ app.get('/api/archives', async (req, res) => {
         res.status(500).json({ message: "Gagal mengambil data archive." }); 
     }
 });
-
+//pindah seever Singapur 
 // EXPORT BUAT VERCEL (Pengganti app.listen)
 module.exports = app;
